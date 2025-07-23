@@ -26,8 +26,8 @@ abstract contract RewardManagerStorage is
 
     address public payFeeManager;
 
-    mapping(address => uint256) public chainBaseStakeRewards;
     mapping(address => uint256) public operatorRewards;
+    mapping(address => mapping(address => uint256)) stakerRewards;
 
     function _initializeRewardManagerStorage(
         IDelegationManager _delegationManager,

@@ -103,6 +103,7 @@ contract CpChainDepositManager is
 
         if (userShares == 0) {
             delete stakerCpChainBaseShares[staker];
+            cpChainBase.deleteStaker(staker);
         }
     }
 
@@ -137,7 +138,7 @@ contract CpChainDepositManager is
         address staker,
         uint256 amount
     ) internal returns (uint256 shares) {
-        shares = cpChainBase.deposit{value: amount}(amount);
+        shares = cpChainBase.deposit{value: amount}(amount, staker);
 
         _addShares(staker, shares);
 

@@ -508,11 +508,7 @@ contract DelegationManager is
                             VIEW FUNCTIONS
     *******************************************************************************/
     function domainSeparator() public view returns (bytes32) {
-        if (block.chainid == ORIGINAL_CHAIN_ID) {
-            return _DOMAIN_SEPARATOR;
-        } else {
-            return _calculateDomainSeparator();
-        }
+        return _calculateDomainSeparator();
     }
 
     function isDelegated(address staker) public view returns (bool) {

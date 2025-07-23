@@ -16,17 +16,29 @@ contract CpChainBase is Initializable, ICpChainBase, Pausable {
     uint256 internal constant SHARES_OFFSET = 1e3;
     uint256 internal constant BALANCE_OFFSET = 1e3;
 
+    uint256 internal constant MAX_STAKER_NUMBERS = 32;
+    address[] stakerList;
+
     ICpChainDepositManager public cpChainDepositManager;
 
     uint256 public minDeposit;
     uint256 public maxDeposit;
 
     uint256 public totalShares;
+    uint256 public stakerNumbers;
 
     modifier onlyStrategyManager() {
         require(
             msg.sender == address(cpChainDepositManager),
             "CpChainBase.onlyStrategyManager"
+        );
+        _;
+    }
+
+    modifier onlyStakerNumbersLessThanMaxLimit() {
+        require(
+            stakerNumbers < MAX_STAKER_NUMBERS,
+            "Stakers too much in this pool"
         );
         _;
     }
@@ -53,13 +65,15 @@ contract CpChainBase is Initializable, ICpChainBase, Pausable {
     }
 
     function deposit(
-        uint256 amount
+        uint256 amount,
+        address staker
     )
         external
         payable
         virtual
         override
         onlyStrategyManager
+        onlyStakerNumbersLessThanMaxLimit
         returns (uint256 newShares)
     {
         require(
@@ -86,6 +100,12 @@ contract CpChainBase is Initializable, ICpChainBase, Pausable {
 
         totalShares = (priorTotalShares + newShares);
 
+        unchecked {
+            stakerNumbers = stakerNumbers + 1;
+        }
+
+        stakerList.push(staker);
+
         return newShares;
     }
 
@@ -108,6 +128,20 @@ contract CpChainBase is Initializable, ICpChainBase, Pausable {
         totalShares = priorTotalShares - amountShares;
 
         _afterWithdrawal(recipient, amountToSend);
+    }
+
+    function deleteStaker(address staker) public onlyStrategyManager {
+        uint256 length = stakerList.length;
+
+        for (uint256 i = 0; i < length; i++) {
+            if (stakerList[i] == staker) {
+                stakerList[i] = stakerList[stakerNumbers - 1];
+
+                stakerList.pop();
+                break;
+            }
+        }
+        stakerNumbers = stakerNumbers - 1;
     }
 
     function _afterWithdrawal(
@@ -197,6 +231,14 @@ contract CpChainBase is Initializable, ICpChainBase, Pausable {
 
     function cpBalance() internal view virtual returns (uint256) {
         return address(this).balance;
+    }
+
+    function stakerListLength() external view returns (uint256) {
+        return stakerList.length;
+    }
+
+    function stakerListFind(uint256 index) external view returns (address) {
+        return stakerList[index];
     }
 
     uint256[100] private __gap;
