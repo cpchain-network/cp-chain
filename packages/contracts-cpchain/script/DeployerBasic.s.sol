@@ -28,7 +28,9 @@ contract DeployerBasic is ExistingDeploymentParser {
         _verifyContractsInitialized();
         _verifyInitializationParams();
 
-        logAndOutputContractAddresses("script/output/DeploymentBasic.config.json");
+        logAndOutputContractAddresses(
+            "script/output/DeploymentBasic.config.json"
+        );
     }
 
     /**
@@ -46,37 +48,72 @@ contract DeployerBasic is ExistingDeploymentParser {
         address unpauser = executorMultisig;
         cpChainLayerPauserReg = new PauserRegistry(pausers, unpauser);
 
-
         emptyContract = new EmptyContract();
 
         // Deploy and upgrade chainBase
-        TransparentUpgradeableProxy chainBaseBaseProxyInstance = new TransparentUpgradeableProxy(address(emptyContract), executorMultisig, "");
-        cpChainBase = CpChainBase(address(chainBaseBaseProxyInstance));
-        chainBaseBaseProxyAdmin = ProxyAdmin(getProxyAdminAddress(address(chainBaseBaseProxyInstance)));
+        TransparentUpgradeableProxy chainBaseBaseProxyInstance = new TransparentUpgradeableProxy(
+                address(emptyContract),
+                executorMultisig,
+                ""
+            );
+        cpChainBase = CpChainBase(payable(address(chainBaseBaseProxyInstance)));
+        chainBaseBaseProxyAdmin = ProxyAdmin(
+            getProxyAdminAddress(address(chainBaseBaseProxyInstance))
+        );
 
-        TransparentUpgradeableProxy delegationManagerProxyInstance = new TransparentUpgradeableProxy(address(emptyContract), executorMultisig, "");
-        delegationManager = DelegationManager(payable(address(delegationManagerProxyInstance)));
-        delegationManagerProxyAdmin = ProxyAdmin(getProxyAdminAddress(address(delegationManagerProxyInstance)));
+        TransparentUpgradeableProxy delegationManagerProxyInstance = new TransparentUpgradeableProxy(
+                address(emptyContract),
+                executorMultisig,
+                ""
+            );
+        delegationManager = DelegationManager(
+            payable(address(delegationManagerProxyInstance))
+        );
+        delegationManagerProxyAdmin = ProxyAdmin(
+            getProxyAdminAddress(address(delegationManagerProxyInstance))
+        );
 
-        TransparentUpgradeableProxy cpChainDepositManagerProxyInstance = new TransparentUpgradeableProxy(address(emptyContract), executorMultisig, "");
-        cpChainDepositManager = CpChainDepositManager(payable(address(cpChainDepositManagerProxyInstance)));
-        cpChainDepositManagerProxyAdmin = ProxyAdmin(getProxyAdminAddress(address(cpChainDepositManagerProxyInstance)));
+        TransparentUpgradeableProxy cpChainDepositManagerProxyInstance = new TransparentUpgradeableProxy(
+                address(emptyContract),
+                executorMultisig,
+                ""
+            );
+        cpChainDepositManager = CpChainDepositManager(
+            payable(address(cpChainDepositManagerProxyInstance))
+        );
+        cpChainDepositManagerProxyAdmin = ProxyAdmin(
+            getProxyAdminAddress(address(cpChainDepositManagerProxyInstance))
+        );
 
-        TransparentUpgradeableProxy rewardManagerProxyInstance = new TransparentUpgradeableProxy(address(emptyContract), executorMultisig, "");
-        rewardManager = RewardManager(payable(address(rewardManagerProxyInstance)));
-        rewardManagerProxyAdmin =  ProxyAdmin(getProxyAdminAddress(address(rewardManagerProxyInstance)));
+        TransparentUpgradeableProxy rewardManagerProxyInstance = new TransparentUpgradeableProxy(
+                address(emptyContract),
+                executorMultisig,
+                ""
+            );
+        rewardManager = RewardManager(
+            payable(address(rewardManagerProxyInstance))
+        );
+        rewardManagerProxyAdmin = ProxyAdmin(
+            getProxyAdminAddress(address(rewardManagerProxyInstance))
+        );
 
-        TransparentUpgradeableProxy slashingManagerProxyInstance = new TransparentUpgradeableProxy(address(emptyContract), executorMultisig, "");
-        slashingManager = SlashingManager(payable(address(slashingManagerProxyInstance)));
-        slashingManagerProxyAdmin =  ProxyAdmin(getProxyAdminAddress(address(slashingManagerProxyInstance)));
+        TransparentUpgradeableProxy slashingManagerProxyInstance = new TransparentUpgradeableProxy(
+                address(emptyContract),
+                executorMultisig,
+                ""
+            );
+        slashingManager = SlashingManager(
+            payable(address(slashingManagerProxyInstance))
+        );
+        slashingManagerProxyAdmin = ProxyAdmin(
+            getProxyAdminAddress(address(slashingManagerProxyInstance))
+        );
 
-
-        delegationManagerImplementation = new DelegationManager(cpChainDepositManager, cpChainBase, slashingManager);
-        cpChainDepositManagerImplementation = new CpChainDepositManager(delegationManager, cpChainBase);
-        cpChainBaseImplementation = new CpChainBase(cpChainDepositManager);
-        rewardManagerImplementation = new RewardManager(delegationManager, cpChainDepositManager);
+        delegationManagerImplementation = new DelegationManager();
+        cpChainDepositManagerImplementation = new CpChainDepositManager();
+        cpChainBaseImplementation = new CpChainBase();
+        rewardManagerImplementation = new RewardManager();
         slashingManagerImplementation = new SlashingManager();
-
 
         // DelegationManager
         delegationManagerProxyAdmin.upgradeAndCall(
@@ -87,16 +124,23 @@ contract DeployerBasic is ExistingDeploymentParser {
                 executorMultisig, // initialOwner
                 cpChainLayerPauserReg,
                 DELEGATION_MANAGER_INIT_PAUSED_STATUS,
-                0
+                0,
+                cpChainDepositManager,
+                cpChainBase,
+                slashingManager
             )
         );
         // CpChainDepositManager
         cpChainDepositManagerProxyAdmin.upgradeAndCall(
-            ITransparentUpgradeableProxy(payable(address(cpChainDepositManager))),
+            ITransparentUpgradeableProxy(
+                payable(address(cpChainDepositManager))
+            ),
             address(cpChainDepositManagerImplementation),
             abi.encodeWithSelector(
                 CpChainDepositManager.initialize.selector,
-                msg.sender //initialOwner, set to executorMultisig later after whitelisting strategies
+                msg.sender, //initialOwner, set to executorMultisig later after whitelisting strategies
+                address(delegationManagerProxyInstance),
+                address(chainBaseBaseProxyInstance)
             )
         );
 
@@ -108,7 +152,8 @@ contract DeployerBasic is ExistingDeploymentParser {
                 CpChainBase.initialize.selector,
                 cpChainLayerPauserReg,
                 CPCHAINBASE_MIN_DEPOSIT,
-                CPCHAINBASE_MAX_DEPOSIT
+                CPCHAINBASE_MAX_DEPOSIT,
+                cpChainDepositManager
             )
         );
 
@@ -125,7 +170,6 @@ contract DeployerBasic is ExistingDeploymentParser {
                 cpChainLayerPauserReg
             )
         );
-
 
         slashingManagerProxyAdmin.upgradeAndCall(
             ITransparentUpgradeableProxy(payable(address(slashingManager))),

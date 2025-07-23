@@ -4,7 +4,10 @@ pragma solidity >=0.5.0;
 import "@/access/interfaces/IPauserRegistry.sol";
 
 interface IPausable {
-    event PauserRegistrySet(IPauserRegistry pauserRegistry, IPauserRegistry newPauserRegistry);
+    event PauserRegistrySet(
+        IPauserRegistry pauserRegistry,
+        IPauserRegistry newPauserRegistry
+    );
 
     event Paused(address indexed account, uint256 newPausedStatus);
 

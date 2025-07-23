@@ -10,11 +10,15 @@ import "../../interfaces/IRewardManager.sol";
 import "../../interfaces/IDelegationManager.sol";
 import "../../interfaces/ICpChainDepositManager.sol";
 
+abstract contract RewardManagerStorage is
+    Initializable,
+    OwnableUpgradeable,
+    ReentrancyGuardUpgradeable,
+    IRewardManager
+{
+    IDelegationManager public delegationManager;
 
-abstract contract RewardManagerStorage is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, IRewardManager {
-    IDelegationManager public immutable delegationManager;
-
-    ICpChainDepositManager public immutable cpChainDepositManager;
+    ICpChainDepositManager public cpChainDepositManager;
 
     uint256 public stakePercent;
 
@@ -25,7 +29,10 @@ abstract contract RewardManagerStorage is Initializable, OwnableUpgradeable, Ree
     mapping(address => uint256) public chainBaseStakeRewards;
     mapping(address => uint256) public operatorRewards;
 
-    constructor(IDelegationManager _delegationManager, ICpChainDepositManager _cpChainDepositManager) {
+    function _initializeRewardManagerStorage(
+        IDelegationManager _delegationManager,
+        ICpChainDepositManager _cpChainDepositManager
+    ) internal {
         delegationManager = _delegationManager;
         cpChainDepositManager = _cpChainDepositManager;
     }

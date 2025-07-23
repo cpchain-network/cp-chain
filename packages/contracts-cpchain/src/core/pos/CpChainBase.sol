@@ -5,11 +5,9 @@ import "@/access/Pausable.sol";
 
 import "@openzeppelin-upgrades/contracts/proxy/utils/Initializable.sol";
 
-
 import "../../interfaces/ICpChainBase.sol";
 import "../../interfaces/ICpChainDepositManager.sol";
 import "../../access/interfaces/IPauserRegistry.sol";
-
 
 contract CpChainBase is Initializable, ICpChainBase, Pausable {
     uint8 internal constant PAUSED_DEPOSITS = 0;
@@ -18,7 +16,7 @@ contract CpChainBase is Initializable, ICpChainBase, Pausable {
     uint256 internal constant SHARES_OFFSET = 1e3;
     uint256 internal constant BALANCE_OFFSET = 1e3;
 
-    ICpChainDepositManager public immutable cpChainDepositManager;
+    ICpChainDepositManager public cpChainDepositManager;
 
     uint256 public minDeposit;
     uint256 public maxDeposit;
@@ -26,31 +24,52 @@ contract CpChainBase is Initializable, ICpChainBase, Pausable {
     uint256 public totalShares;
 
     modifier onlyStrategyManager() {
-        require(msg.sender == address(cpChainDepositManager), "CpChainBase.onlyStrategyManager");
+        require(
+            msg.sender == address(cpChainDepositManager),
+            "CpChainBase.onlyStrategyManager"
+        );
         _;
     }
 
-    constructor(ICpChainDepositManager _cpChainDepositManager) {
-        cpChainDepositManager = _cpChainDepositManager;
+    constructor() {
         _disableInitializers();
     }
 
     function initialize(
         IPauserRegistry _pauserRegistry,
         uint256 _minDeposit,
-        uint256 _maxDeposit
+        uint256 _maxDeposit,
+        ICpChainDepositManager _cpChainDepositManager
     ) public virtual initializer {
         _setDepositLimits(_minDeposit, _maxDeposit);
         _initializeCpChainBase(_pauserRegistry);
+        cpChainDepositManager = _cpChainDepositManager;
     }
 
-    function _initializeCpChainBase(IPauserRegistry _pauserRegistry) internal onlyInitializing {
+    function _initializeCpChainBase(
+        IPauserRegistry _pauserRegistry
+    ) internal onlyInitializing {
         _initializePauser(_pauserRegistry, UNPAUSE_ALL);
     }
 
-    function deposit(uint256 amount) external virtual payable override onlyStrategyManager returns (uint256 newShares) {
-        require(amount >= minDeposit, "CpChainBase: deposit token must more than min deposit amount");
-        require(amount <= maxDeposit, "CpChainBase: deposit token must less than max deposit amount");
+    function deposit(
+        uint256 amount
+    )
+        external
+        payable
+        virtual
+        override
+        onlyStrategyManager
+        returns (uint256 newShares)
+    {
+        require(
+            amount >= minDeposit,
+            "CpChainBase: deposit token must more than min deposit amount"
+        );
+        require(
+            amount <= maxDeposit,
+            "CpChainBase: deposit token must less than max deposit amount"
+        );
 
         uint256 priorTotalShares = totalShares;
 
@@ -60,14 +79,20 @@ contract CpChainBase is Initializable, ICpChainBase, Pausable {
         uint256 virtualPriorTokenBalance = virtualTokenBalance - amount;
         newShares = (amount * virtualShareAmount) / virtualPriorTokenBalance;
 
-        require(newShares != 0, "CpChainBase.deposit: new shares cannot be zero");
+        require(
+            newShares != 0,
+            "CpChainBase.deposit: new shares cannot be zero"
+        );
 
         totalShares = (priorTotalShares + newShares);
 
         return newShares;
     }
 
-    function withdraw(address recipient, uint256 amountShares) external virtual override whenNotPaused onlyStrategyManager {
+    function withdraw(
+        address recipient,
+        uint256 amountShares
+    ) external virtual override whenNotPaused onlyStrategyManager {
         uint256 priorTotalShares = totalShares;
         require(
             amountShares <= priorTotalShares,
@@ -77,43 +102,63 @@ contract CpChainBase is Initializable, ICpChainBase, Pausable {
         uint256 virtualPriorTotalShares = priorTotalShares + SHARES_OFFSET;
         uint256 virtualTokenBalance = cpBalance() + BALANCE_OFFSET;
 
-        uint256 amountToSend = (virtualTokenBalance * amountShares) / virtualPriorTotalShares;
+        uint256 amountToSend = (virtualTokenBalance * amountShares) /
+            virtualPriorTotalShares;
 
         totalShares = priorTotalShares - amountShares;
 
         _afterWithdrawal(recipient, amountToSend);
     }
 
-    function _afterWithdrawal(address recipient, uint256 amountToSend) internal virtual {
+    function _afterWithdrawal(
+        address recipient,
+        uint256 amountToSend
+    ) internal virtual {
         (bool success, ) = payable(recipient).call{value: amountToSend}("");
         require(success, "CpChainBase._afterWithdrawal: transfer cp failed");
     }
 
-    function explanation() external pure virtual override returns (string memory) {
+    function explanation()
+        external
+        pure
+        virtual
+        override
+        returns (string memory)
+    {
         return "CpChain Pos Staking Protocol";
     }
 
-    function sharesToUnderlyingView(uint256 amountShares) public view virtual override returns (uint256) {
+    function sharesToUnderlyingView(
+        uint256 amountShares
+    ) public view virtual override returns (uint256) {
         uint256 virtualTotalShares = totalShares + SHARES_OFFSET;
         uint256 virtualTokenBalance = cpBalance() + BALANCE_OFFSET;
         return (virtualTokenBalance * amountShares) / virtualTotalShares;
     }
 
-    function sharesToUnderlying(uint256 amountShares) public view virtual override returns (uint256) {
+    function sharesToUnderlying(
+        uint256 amountShares
+    ) public view virtual override returns (uint256) {
         return sharesToUnderlyingView(amountShares);
     }
 
-    function underlyingToSharesView(uint256 amountUnderlying) public view virtual returns (uint256) {
+    function underlyingToSharesView(
+        uint256 amountUnderlying
+    ) public view virtual returns (uint256) {
         uint256 virtualTotalShares = totalShares + SHARES_OFFSET;
         uint256 virtualTokenBalance = cpBalance() + BALANCE_OFFSET;
         return (amountUnderlying * virtualTotalShares) / virtualTokenBalance;
     }
 
-    function underlyingToShares(uint256 amountUnderlying) external view virtual returns (uint256) {
+    function underlyingToShares(
+        uint256 amountUnderlying
+    ) external view virtual returns (uint256) {
         return underlyingToSharesView(amountUnderlying);
     }
 
-    function userUnderlyingView(address user) external view virtual returns (uint256) {
+    function userUnderlyingView(
+        address user
+    ) external view virtual returns (uint256) {
         return sharesToUnderlyingView(shares(user));
     }
 
@@ -125,7 +170,10 @@ contract CpChainBase is Initializable, ICpChainBase, Pausable {
         return cpChainDepositManager.stakerCpChainBaseShares(user);
     }
 
-    function setDepositLimits(uint256 newMinDeposit, uint256 newMaxDeposit) external onlyStrategyManager {
+    function setDepositLimits(
+        uint256 newMinDeposit,
+        uint256 newMaxDeposit
+    ) external onlyStrategyManager {
         _setDepositLimits(newMinDeposit, newMaxDeposit);
     }
 
@@ -133,7 +181,10 @@ contract CpChainBase is Initializable, ICpChainBase, Pausable {
         return (minDeposit, maxDeposit);
     }
 
-    function _setDepositLimits(uint256 newMinDeposit, uint256 newMaxDeposit) internal {
+    function _setDepositLimits(
+        uint256 newMinDeposit,
+        uint256 newMaxDeposit
+    ) internal {
         emit MinDepositUpdated(minDeposit, newMinDeposit);
         emit MaxDepositUpdated(maxDeposit, newMaxDeposit);
         require(
