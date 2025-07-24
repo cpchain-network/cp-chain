@@ -48,10 +48,12 @@ contract CpChainBaseTest is Test {
 
         vm.deal(strategyManager, 10 ether);
         vm.prank(strategyManager);
+
         uint256 newShares = cpChainBase.deposit{value: 10 ether}(
             10 ether,
             user1
         );
+
         uint256 balanceAfter = address(cpChainBase).balance;
 
         assertGt(newShares, 0);
@@ -65,19 +67,25 @@ contract CpChainBaseTest is Test {
         );
         vm.deal(strategyManager, 10 ether);
         vm.prank(strategyManager);
+
         cpChainBase.deposit{value: 0.5 ether}(0.5 ether, user1);
+
 
         vm.expectRevert(
             "CpChainBase: deposit token must less than max deposit amount"
         );
         vm.deal(strategyManager, 15 ether);
         vm.prank(strategyManager);
+
         cpChainBase.deposit{value: 12 ether}(12 ether, user1);
+
     }
 
     function testWithdrawShouldSendEth() public {
         vm.prank(strategyManager);
+
         uint256 newShares = cpChainBase.deposit{value: 5 ether}(5 ether, user1);
+
         uint256 balanceBefore = address(cpChainBase).balance;
 
         vm.prank(user1);

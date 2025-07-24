@@ -16,8 +16,10 @@ contract CpChainBase is Initializable, ICpChainBase, Pausable {
     uint256 internal constant SHARES_OFFSET = 1e3;
     uint256 internal constant BALANCE_OFFSET = 1e3;
 
+
     uint256 internal constant MAX_STAKER_NUMBERS = 32;
     address[] stakerList;
+
 
     ICpChainDepositManager public cpChainDepositManager;
 
@@ -35,6 +37,7 @@ contract CpChainBase is Initializable, ICpChainBase, Pausable {
         _;
     }
 
+
     modifier onlyStakerNumbersLessThanMaxLimit() {
         require(
             stakerNumbers < MAX_STAKER_NUMBERS,
@@ -42,6 +45,7 @@ contract CpChainBase is Initializable, ICpChainBase, Pausable {
         );
         _;
     }
+
 
     constructor() {
         _disableInitializers();
@@ -65,15 +69,19 @@ contract CpChainBase is Initializable, ICpChainBase, Pausable {
     }
 
     function deposit(
+
         uint256 amount,
         address staker
+
     )
         external
         payable
         virtual
         override
         onlyStrategyManager
+
         onlyStakerNumbersLessThanMaxLimit
+
         returns (uint256 newShares)
     {
         require(
@@ -143,6 +151,7 @@ contract CpChainBase is Initializable, ICpChainBase, Pausable {
         }
         stakerNumbers = stakerNumbers - 1;
     }
+
 
     function _afterWithdrawal(
         address recipient,

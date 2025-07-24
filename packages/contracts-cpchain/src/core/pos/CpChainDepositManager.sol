@@ -138,7 +138,9 @@ contract CpChainDepositManager is
         address staker,
         uint256 amount
     ) internal returns (uint256 shares) {
+
         shares = cpChainBase.deposit{value: amount}(amount, staker);
+
 
         _addShares(staker, shares);
 
