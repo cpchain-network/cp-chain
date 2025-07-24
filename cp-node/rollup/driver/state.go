@@ -204,7 +204,7 @@ func (s *Driver) eventLoop() {
 
 	// Create a ticker to check if there is a gap in the engine queue. Whenever
 	// there is, we send requests to sync source to retrieve the missing payloads.
-	syncCheckInterval := time.Duration(s.Config.BlockTime) * time.Second * 2
+	syncCheckInterval := time.Duration(s.Config.BlockTime) * time.Second / 2
 	altSyncTicker := time.NewTicker(syncCheckInterval)
 	defer altSyncTicker.Stop()
 	lastUnsafeL2 := s.Engine.UnsafeL2Head()
@@ -250,6 +250,14 @@ func (s *Driver) eventLoop() {
 				cancel()
 				if err != nil {
 					s.log.Warn("failed to check for unsafe core blocks to sync", "err", err)
+				}
+			} else {
+				// Check if there is a gap in the current unsafe payload queue.
+				ctx, cancel := context.WithTimeout(s.driverCtx, time.Second*2)
+				err := s.checkSyncUnsafeBlocks(ctx)
+				cancel()
+				if err != nil {
+					s.log.Warn("failed to check sync unsafe blocks", "err", err)
 				}
 			}
 		case envelope := <-s.unsafeL2Payloads:
@@ -583,16 +591,57 @@ func (s *Driver) syncUnsafeBlocks(ctx context.Context) {
 		for _, payload := range payloads {
 			ref, err := derive.PayloadToBlockRef(s.Config, payload.ExecutionPayload)
 			if err != nil {
-				s.log.Info("Failed to turn execution payload into a block ref", "id", payload.ExecutionPayload.ID(), "err", err)
+				s.log.Error("Failed to turn execution payload into a block ref", "id", payload.ExecutionPayload.ID(), "err", err)
 				continue
 			}
 			if err := s.Engine.InsertUnsafePayload(ctx, &payload, ref); err != nil {
-				s.log.Warn("Failed to insert unsafe payload for EL sync", "id", payload.ExecutionPayload.ID(), "err", err)
+				s.log.Error("Failed to insert unsafe payload for EL sync", "id", payload.ExecutionPayload.ID(), "err", err)
 			}
 		}
 		s.log.Info("successfully synchronized a batch of blocks", "now", endHeight.String(), "latest", endBlock.NumberU64())
 
 	}
+}
+
+func (s *Driver) checkSyncUnsafeBlocks(ctx context.Context) error {
+	startBlock, err := s.L2.GetLatestBlock(ctx)
+	if err != nil && errors.Is(err, ethereum.NotFound) {
+		s.log.Error("failed to get latest block by l2 geth", "err", err)
+		return err
+	}
+	endBlock, err := s.ELClient.GetLatestBlock(ctx)
+	if err != nil && errors.Is(err, ethereum.NotFound) {
+		s.log.Error("failed to get latest block by el geth", "err", err)
+		return err
+	}
+	if startBlock == nil || endBlock == nil {
+		return nil
+	}
+
+	if startBlock.NumberU64() < endBlock.NumberU64()-5 {
+		startHeight := big.NewInt(int64(startBlock.NumberU64()) + 1)
+		endHeight := clamp(startHeight, big.NewInt(int64(endBlock.NumberU64())), uint64(s.maxBatchSize))
+
+		payloads, err := s.ELClient.PayloadsByRange(ctx, startHeight, endHeight)
+		if err != nil {
+			s.log.Error("error querying blocks by range", "err", err)
+			return err
+		}
+
+		for _, payload := range payloads {
+			ref, err := derive.PayloadToBlockRef(s.Config, payload.ExecutionPayload)
+			if err != nil {
+				s.log.Error("Failed to turn execution payload into a block ref", "id", payload.ExecutionPayload.ID(), "err", err)
+				return err
+			}
+			if err := s.Engine.InsertUnsafePayload(ctx, &payload, ref); err != nil {
+				s.log.Error("Failed to insert unsafe payload for EL sync", "id", payload.ExecutionPayload.ID(), "err", err)
+				return err
+			}
+		}
+		s.log.Info("successfully synchronized a batch of blocks", "now", endHeight.String(), "latest", endBlock.NumberU64())
+	}
+	return nil
 }
 
 func clamp(start, end *big.Int, size uint64) *big.Int {

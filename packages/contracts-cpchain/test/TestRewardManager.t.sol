@@ -186,6 +186,7 @@ contract RewardManagerTest is Test {
         assertEq(rewardManager.operatorRewards(operator), 100 ether);
         assertEq(rewardManager.operatorRewards(operator1), 0);
 
+
         vm.deal(address(rewardManager), 500 ether);
 
         vm.prank(operator);
@@ -205,7 +206,9 @@ contract RewardManagerTest is Test {
             address(cpChainBase)
         );
         assertTrue(success2);
+
         assertEq(user2.balance, 98 ether + 50 ether);
+
     }
 
     function testPayFeeRevertsIfZeroShares() public {

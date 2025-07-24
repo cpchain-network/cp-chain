@@ -69,9 +69,11 @@ contract RewardManager is RewardManagerStorage, Pausable {
 
         uint256 operatorTotalFee = (baseFee * operatorShares) / totalShares;
 
+
         uint256 stakeFee = (operatorTotalFee * stakePercent) / 100;
 
         _updateStakerReward(chainBase, stakeFee, totalShares);
+
 
         uint256 operatorFee = operatorTotalFee - stakeFee;
 
@@ -112,9 +114,11 @@ contract RewardManager is RewardManagerStorage, Pausable {
 
         emit StakeHolderClaimReward(msg.sender, chainBase, stakeHolderAmount);
 
+
         (bool success, ) = payable(msg.sender).call{value: stakeHolderAmount}(
             ""
         );
+
 
         return success;
     }
@@ -142,6 +146,7 @@ contract RewardManager is RewardManagerStorage, Pausable {
                 (shares * stakeFee) /
                 totalShares;
         }
+
     }
 
     function _stakeHolderAmount(
