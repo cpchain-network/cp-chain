@@ -29,10 +29,10 @@ contract DelegationManager is
 
     uint256 public constant MAX_STAKER_OPT_OUT_WINDOW_BLOCKS = (180 days) / 12;
 
-    modifier onlyStrategyManager() {
+    modifier onlyDepositManager() {
         require(
             msg.sender == address(cpChainDepositManager),
-            "onlyStrategyManager"
+            "onlyDepositManager"
         );
         _;
     }
@@ -107,9 +107,15 @@ contract DelegationManager is
     }
 
     function slashingStakingShares(
+        address operator,
         address staker,
         uint256 shares
     ) external onlySlashingManager {
+
+        if (operator != address(0)) {
+            _decreaseOperatorShares(operator, staker, shares);
+        }
+
         cpChainDepositManager.removeShares(staker, shares);
 
         cpChainDepositManager.withdrawSharesAsCp(
@@ -198,7 +204,8 @@ contract DelegationManager is
 
         for (uint256 i = 0; i < stakerList.length; i++) {
             if (stakerList[i] == staker) {
-                delete stakerList[i];
+                stakerList[i] = stakerList[stakerList.length - 1];
+                stakerList.pop();
             }
         }
 
@@ -254,7 +261,7 @@ contract DelegationManager is
     function increaseDelegatedShares(
         address staker,
         uint256 shares
-    ) external onlyStrategyManager {
+    ) external onlyDepositManager {
         if (isDelegated(staker)) {
             address operator = delegatedTo[staker];
             _increaseOperatorShares(operator, staker, shares);
@@ -264,7 +271,7 @@ contract DelegationManager is
     function decreaseDelegatedShares(
         address staker,
         uint256 shares
-    ) external onlyStrategyManager {
+    ) external onlyDepositManager {
         if (isDelegated(staker)) {
             address operator = delegatedTo[staker];
             _decreaseOperatorShares({
