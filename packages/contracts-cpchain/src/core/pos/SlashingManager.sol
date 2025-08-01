@@ -70,7 +70,7 @@ contract SlashingManager is Initializable, OwnableUpgradeable, ReentrancyGuardUp
 
                 slashingStakerShares[stakers[i]] += stakerSlashedShare;
 
-                delegationManager.slashingStakingShares(stakers[i], stakerSlashedShare);
+                delegationManager.slashingStakingShares(operator, stakers[i], stakerSlashedShare);
 
                 emit SlashedShareDistributed(operator, stakers[i], stakerSlashedShare);
             }

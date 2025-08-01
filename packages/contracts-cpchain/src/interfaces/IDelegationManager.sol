@@ -117,7 +117,7 @@ interface IDelegationManager is ISignatureUtils {
         address staker
     ) external returns (bytes32 withdrawalRoot);
 
-    function slashingStakingShares(address staker, uint256 shares) external;
+    function slashingStakingShares(address operator, address staker, uint256 shares) external;
 
     function queueWithdrawals(
         QueuedWithdrawalParams[] calldata queuedWithdrawalParams

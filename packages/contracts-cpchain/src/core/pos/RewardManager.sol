@@ -112,13 +112,15 @@ contract RewardManager is RewardManagerStorage, Pausable {
             "RewardManager operatorClaimReward: Reward Token balance insufficient"
         );
 
-        emit StakeHolderClaimReward(msg.sender, chainBase, stakeHolderAmount);
+        _removeStakeHolderAmount(msg.sender, chainBase, stakeHolderAmount);
 
+        emit StakeHolderClaimReward(msg.sender, chainBase, stakeHolderAmount);
 
         (bool success, ) = payable(msg.sender).call{value: stakeHolderAmount}(
             ""
         );
 
+        require(success, "RewardManager operatorClaimReward: transfer fail");
 
         return success;
     }
@@ -156,9 +158,21 @@ contract RewardManager is RewardManagerStorage, Pausable {
         return stakerRewards[chainBase][staker];
     }
 
+    function _removeStakeHolderAmount(
+        address staker,
+        address chainBase,
+        uint256 stakerAmount
+    ) internal {
+        stakerRewards[chainBase][staker] = stakerRewards[chainBase][staker] - stakerAmount;
+    }
+
     function updateStakePercent(
         uint256 _stakePercent
     ) external onlyRewardManager {
+        require(
+            _stakePercent > 0,
+            "RewardManager updateStakePercent: _stakePercent need more then zero"
+        );
         stakePercent = _stakePercent;
     }
 }

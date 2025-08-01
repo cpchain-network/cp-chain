@@ -476,14 +476,14 @@ contract CpDelegationManagerTest is Test {
 
         // slashingManager 触发惩罚
         vm.prank(slashingManager);
-        delegationManager.slashingStakingShares(user1, 1 ether);
+        delegationManager.slashingStakingShares(operator1, user1, 1 ether);
 
         assertEq(cpChainDepositManager.getDeposits(user1), 1 ether);
         assertEq(slashingManager.balance, 1 ether);
 
         vm.prank(user1);
         vm.expectRevert("onlySlashingManager");
-        delegationManager.slashingStakingShares(user1, 1 ether);
+        delegationManager.slashingStakingShares(operator1, user1, 1 ether);
     }
 
     function testDomainSeparatorUnchangedOnSameChain() public view {
