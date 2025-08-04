@@ -7,11 +7,13 @@ import "@openzeppelin-upgrades/contracts/utils/ReentrancyGuardUpgradeable.sol";
 
 import "./CpChainDepositManagerStorage.sol";
 import "../../libraries/EIP1271SignatureUtils.sol";
+import "@/access/Pausable.sol";
 
 contract CpChainDepositManager is
     Initializable,
     OwnableUpgradeable,
     ReentrancyGuardUpgradeable,
+    Pausable,
     CpChainDepositManagerStorage
 {
     uint8 internal constant PAUSED_DEPOSITS = 0;
@@ -32,7 +34,7 @@ contract CpChainDepositManager is
         ICpChainBase _cpChainBase
     ) public initializer {
         _DOMAIN_SEPARATOR = _calculateDomainSeparator();
-        _transferOwnership(initialOwner);
+        __Ownable_init(initialOwner);
         _initCpChainDepositManagerStorage(_delegation, _cpChainBase);
     }
 
@@ -40,7 +42,7 @@ contract CpChainDepositManager is
 
     function depositIntoCpChain(
         uint256 amount
-    ) external payable nonReentrant returns (uint256 shares) {
+    ) external payable whenNotPaused nonReentrant returns (uint256 shares) {
         require(amount == msg.value, "deposit value not match amount");
         shares = _depositIntoCpChain(msg.sender, amount);
     }
@@ -50,7 +52,7 @@ contract CpChainDepositManager is
         address staker,
         uint256 expiry,
         bytes memory signature
-    ) external payable nonReentrant returns (uint256 shares) {
+    ) external payable whenNotPaused nonReentrant returns (uint256 shares) {
         require(amount == msg.value, "deposit value not match amount");
         require(
             expiry >= block.timestamp,

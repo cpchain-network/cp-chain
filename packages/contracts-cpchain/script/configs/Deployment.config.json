@@ -1,6 +1,6 @@
 {
   "chainInfo": {
-    "chainId": 86606
+    "chainId": 86608
   },
   "multisig_addresses": {
     "pauserMultisig": "0x45Bd8ea16cFEB0D937a2D98cBEb0300e3E689Fe7",

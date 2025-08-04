@@ -11,6 +11,8 @@ import "../../interfaces/ICpChainDepositManager.sol";
 contract RewardManager is RewardManagerStorage, Pausable {
     using SafeERC20 for IERC20;
 
+    uint256 public constant SCALE = 1e18;
+
     modifier onlyRewardManager() {
         require(
             msg.sender == address(rewardManager),
@@ -42,10 +44,10 @@ contract RewardManager is RewardManagerStorage, Pausable {
         IDelegationManager _delegationManager,
         ICpChainDepositManager _cpChainDepositManager
     ) external initializer {
+        __Ownable_init(initialOwner);
         payFeeManager = _payFeeManager;
         rewardManager = _rewardManager;
         stakePercent = _stakePercent;
-        _transferOwnership(initialOwner);
         _initializePauser(_pauserRegistry, UNPAUSE_ALL);
         _initializeRewardManagerStorage(
             _delegationManager,
@@ -143,10 +145,7 @@ contract RewardManager is RewardManagerStorage, Pausable {
             uint256 shares = cpChainDepositManager.getDeposits(
                 ICpChainBase(chainBase).stakerListFind(i)
             );
-
-            stakerRewards[chainBase][staker] +=
-                (shares * stakeFee) /
-                totalShares;
+            stakerRewards[chainBase][staker] += (shares * stakeFee * SCALE) / (totalShares * SCALE);
         }
 
     }

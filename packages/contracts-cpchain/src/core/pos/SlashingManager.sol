@@ -12,6 +12,8 @@ import "./SlashingManagerStorage.sol";
 
 
 contract SlashingManager is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, SlashingManagerStorage {
+    uint256 public constant SCALE = 1e18;
+
     modifier onlySlasher() {
         require(
             msg.sender == slasherAddress,
@@ -37,7 +39,7 @@ contract SlashingManager is Initializable, OwnableUpgradeable, ReentrancyGuardUp
         delegationManager = _delegationAddress;
         MIN_WITHDRAWAL_AMOUNT = _minWithdrawalAmount;
         slashingRecipient = _slashingRecipient;
-        _transferOwnership(initialOwner);
+        __Ownable_init(initialOwner);
     }
 
     function jail(address operator) external onlySlasher {
@@ -66,7 +68,7 @@ contract SlashingManager is Initializable, OwnableUpgradeable, ReentrancyGuardUp
 
         for (uint256 i = 0; i < stakers.length; i++) {
             if (shares[i] > 0) {
-                uint256 stakerSlashedShare = slashShare * shares[i] / totalShares;
+                uint256 stakerSlashedShare = (slashShare * shares[i] * SCALE) / (totalShares * SCALE);
 
                 slashingStakerShares[stakers[i]] += stakerSlashedShare;
 

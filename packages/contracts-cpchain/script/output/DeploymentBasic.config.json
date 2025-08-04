@@ -1,0 +1,28 @@
+{
+  "addresses": {
+    "cpChainBase": "0x4CBDc306643e63f50af4eF1488adF29888fa766C",
+    "cpChainBaseImplementation": "0x907e3108f4899eFd9364461B111FE80500961b77",
+    "cpChainDepositManager": "0x96b0abf6c011BeD0854C4Be9122F6303cd8172E6",
+    "cpChainDepositManagerImplementation": "0x08078940d1be0ce12ea8eCB5d6e8A90FB6445Bb2",
+    "cpChainLayerPauserReg": "0x478210a1678046a0C6af45D159176e75B1BACA91",
+    "cpChainLayerProxyAdmin": "0x879598912f213B0fA96E9c3556b9d7E625c26eb2",
+    "delegationManager": "0xdeBE636D602dB283c51950b4a8926e92fe03Ee07",
+    "delegationManagerImplementation": "0x8e136F6b01d72dFb5394b72F895c3e18120a8988",
+    "emptyContract": "0xFF0E6B6A82822CC27D2d614c8b5FCBa7852B2cc6",
+    "rewardManager": "0x203015A5Aa2353e67F8f123776493fbBDe92FEBE",
+    "rewardManagerImplementation": "0x0106a3a5608a087C1Ddd414C55e84e6cD8C43476",
+    "slashingManager": "0x4b04A081d0EF5d4B36B1fC5F6c6D14E60c0bfe21",
+    "slashingManagerImplementation": "0x997f90F0723d007dF57Ae411755c010DF03bC63E"
+  },
+  "chainInfo": {
+    "chainId": 86608,
+    "deploymentBlock": 1329271
+  },
+  "parameters": {
+    "communityMultisig": "0x45Bd8ea16cFEB0D937a2D98cBEb0300e3E689Fe7",
+    "executorMultisig": "0x45Bd8ea16cFEB0D937a2D98cBEb0300e3E689Fe7",
+    "operationsMultisig": "0x45Bd8ea16cFEB0D937a2D98cBEb0300e3E689Fe7",
+    "pauserMultisig": "0x45Bd8ea16cFEB0D937a2D98cBEb0300e3E689Fe7",
+    "timelock": "0x0000000000000000000000000000000000000000"
+  }
+}
