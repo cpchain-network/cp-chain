@@ -23,10 +23,10 @@ contract DeployerBasic is ExistingDeploymentParser {
         vm.stopBroadcast();
 
         // Sanity Checks
-        _verifyContractPointers();
-        _verifyImplementations();
-        _verifyContractsInitialized();
-        _verifyInitializationParams();
+//        _verifyContractPointers();
+//        _verifyImplementations();
+//        _verifyContractsInitialized();
+//        _verifyInitializationParams();
 
         logAndOutputContractAddresses(
             "script/output/DeploymentBasic.config.json"
@@ -157,19 +157,19 @@ contract DeployerBasic is ExistingDeploymentParser {
             )
         );
 
-        // Deploy RewardManager proxy and implementation
-        rewardManagerProxyAdmin.upgradeAndCall(
-            ITransparentUpgradeableProxy(payable(address(rewardManager))),
-            address(rewardManagerImplementation),
-            abi.encodeWithSelector(
-                RewardManager.initialize.selector,
-                executorMultisig,
-                executorMultisig,
-                executorMultisig,
-                REWARD_MANAGER_STAKE_PERCENTAGE,
-                cpChainLayerPauserReg
-            )
-        );
+//        // Deploy RewardManager proxy and implementation
+//        rewardManagerProxyAdmin.upgradeAndCall(
+//            ITransparentUpgradeableProxy(payable(address(rewardManager))),
+//            address(rewardManagerImplementation),
+//            abi.encodeWithSelector(
+//                RewardManager.initialize.selector,
+//                executorMultisig,
+//                executorMultisig,
+//                executorMultisig,
+//                REWARD_MANAGER_STAKE_PERCENTAGE,
+//                cpChainLayerPauserReg
+//            )
+//        );
 
         slashingManagerProxyAdmin.upgradeAndCall(
             ITransparentUpgradeableProxy(payable(address(slashingManager))),

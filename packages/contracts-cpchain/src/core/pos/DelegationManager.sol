@@ -59,7 +59,7 @@ contract DelegationManager is
     ) external initializer {
         _initializePauser(_pauserRegistry, initialPausedStatus);
         _DOMAIN_SEPARATOR = _calculateDomainSeparator();
-        _transferOwnership(initialOwner);
+        __Ownable_init(initialOwner);
         _setCpChainBaseWithdrawalDelayBlocks(_withdrawalDelayBlock);
         _initializeDelegationManagerStorage(
             _cpChainDepositManager,

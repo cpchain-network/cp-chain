@@ -53,6 +53,11 @@ contract Pausable is IPausable {
         emit Paused(msg.sender, type(uint256).max);
     }
 
+    function unpauseAll() external onlyUnpauser {
+        _paused = UNPAUSE_ALL;
+        emit Unpaused(msg.sender, UNPAUSE_ALL);
+    }
+
     function unpause(uint256 newPausedStatus) external onlyUnpauser {
         require(
             ((~_paused) & (~newPausedStatus)) == (~_paused), "Pausable.unpause: invalid attempt to pause functionality"

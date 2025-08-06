@@ -68,20 +68,13 @@ contract CpChainBase is Initializable, ICpChainBase, Pausable {
         _initializePauser(_pauserRegistry, UNPAUSE_ALL);
     }
 
-    function deposit(
-
-        uint256 amount,
-        address staker
-
-    )
+    function deposit(uint256 amount, address staker)
         external
         payable
         virtual
         override
         onlyStrategyManager
-
         onlyStakerNumbersLessThanMaxLimit
-
         returns (uint256 newShares)
     {
         require(
@@ -144,12 +137,11 @@ contract CpChainBase is Initializable, ICpChainBase, Pausable {
         for (uint256 i = 0; i < length; i++) {
             if (stakerList[i] == staker) {
                 stakerList[i] = stakerList[stakerNumbers - 1];
-
                 stakerList.pop();
+                stakerNumbers = stakerNumbers - 1;
                 break;
             }
         }
-        stakerNumbers = stakerNumbers - 1;
     }
 
 
