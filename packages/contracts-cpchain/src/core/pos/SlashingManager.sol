@@ -68,7 +68,8 @@ contract SlashingManager is Initializable, OwnableUpgradeable, ReentrancyGuardUp
 
         for (uint256 i = 0; i < stakers.length; i++) {
             if (shares[i] > 0) {
-                uint256 stakerSlashedShare = (slashShare * shares[i] * SCALE) / (totalShares * SCALE);
+
+                uint256 stakerSlashedShare = (slashShare * shares[i] * SCALE) / totalShares * SCALE;
 
                 slashingStakerShares[stakers[i]] += stakerSlashedShare;
 
