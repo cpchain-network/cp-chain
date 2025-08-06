@@ -145,7 +145,7 @@ contract RewardManager is RewardManagerStorage, Pausable {
             uint256 shares = cpChainDepositManager.getDeposits(
                 ICpChainBase(chainBase).stakerListFind(i)
             );
-            stakerRewards[chainBase][staker] += (shares * stakeFee * SCALE) / totalShares * SCALE;
+            stakerRewards[chainBase][staker] += (shares * stakeFee * SCALE) / totalShares / SCALE;
         }
 
     }
