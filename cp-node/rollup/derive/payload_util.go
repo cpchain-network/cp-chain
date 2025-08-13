@@ -43,7 +43,7 @@ func PayloadToSystemConfig(rollupCfg *rollup.Config, payload *eth.ExecutionPaylo
 	}
 
 	r := eth.SystemConfig{
-		GasLimit: uint64(payload.GasLimit),
+		GasLimit: uint64(rollupCfg.Genesis.SystemConfig.GasLimit),
 	}
 	if rollupCfg.IsHolocene(uint64(payload.Timestamp)) {
 		if err := eip1559.ValidateHoloceneExtraData(payload.ExtraData); err != nil {
