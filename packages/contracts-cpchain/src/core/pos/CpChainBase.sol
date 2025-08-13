@@ -103,18 +103,13 @@ contract CpChainBase is Initializable, ICpChainBase, Pausable {
 
         totalShares = (priorTotalShares + newShares);
 
-        unchecked {
-            stakerNumbers = stakerNumbers + 1;
-        }
-
         if (!stakerExistInList[staker]) {
-
+            unchecked {
+                stakerNumbers = stakerNumbers + 1;
+            }
             stakerList.push(staker);
-
             stakerExistInList[staker] = true;
         }
-
-
 
         return newShares;
     }
@@ -147,6 +142,7 @@ contract CpChainBase is Initializable, ICpChainBase, Pausable {
                 stakerList[i] = stakerList[stakerNumbers - 1];
                 stakerList.pop();
                 stakerNumbers = stakerNumbers - 1;
+                stakerExistInList[staker] = false;
                 break;
             }
         }
